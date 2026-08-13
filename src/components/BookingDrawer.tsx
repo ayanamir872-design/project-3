@@ -66,7 +66,12 @@ export default function BookingDrawer({ isOpen, onClose, initialService }: Booki
         }),
       });
 
-      if (!response.ok) throw new Error('Booking request failed');
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        const errorMessage = result?.details || result?.error || `Booking request failed (${response.status})`;
+        console.error('Booking request failed', { status: response.status, body: result });
+        throw new Error(errorMessage);
+      }
 
       setSubmitted(true);
       confetti({

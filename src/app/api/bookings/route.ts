@@ -1,79 +1,47 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-
-function getSupabaseClient(options: { write?: boolean } = {}) {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const write = options.write ?? false;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    return null;
-  }
-
-  if (write && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.warn('Using anonymous Supabase key for write operations because SUPABASE_SERVICE_ROLE_KEY is not set. Make sure row-level security allows insert access.');
-  }
-
-  return createClient(supabaseUrl, supabaseKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
-}
+import { getPublicSupabaseConfigError, getPublicSupabaseServerClient } from '../../../lib/supabasePublicServerClient';
 
 export async function GET() {
-  try {
-    const supabase = getSupabaseClient();
-
-    if (!supabase) {
-      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
-    }
-
-    const { data, error } = await supabase.from('appointments').select('*').order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    return NextResponse.json({ appointments: data ?? [] });
-  } catch (error) {
-    console.error('Failed to fetch appointments', error);
-    return NextResponse.json({
-      error: 'Could not fetch appointments',
-      details: error instanceof Error ? error.message : String(error),
-    }, { status: 500 });
-  }
+  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient({ write: true });
-
-    if (!supabase) {
-      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
-    }
+    const supabase = getPublicSupabaseServerClient();
+    if (!supabase) return NextResponse.json({ error: getPublicSupabaseConfigError() ?? 'Server database is not configured' }, { status: 503 });
 
     const body = await request.json();
+    const { customer_name, phone_number, service_name, appointment_date, appointment_time } = body;
+
+    if (!customer_name || !phone_number || !service_name || !appointment_date || !appointment_time) {
+      return NextResponse.json({ error: 'Missing required booking fields' }, { status: 400 });
+    }
+
+    const parsedDate = new Date(`${appointment_date}T00:00:00`);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return NextResponse.json({ error: 'Invalid appointment date' }, { status: 400 });
+    }
 
     const payload = {
-      customer_name: body.customer_name,
-      phone_number: body.phone_number,
-      service_name: body.service_name,
-      appointment_date: body.appointment_date,
-      appointment_time: body.appointment_time,
+      customer_name,
+      phone_number,
+      service_name,
+      appointment_date,
+      appointment_time,
       notes: body.notes ?? '',
-      status: body.status ?? 'pending',
+      status: 'pending',
     };
 
-    const { data, error } = await supabase.from('appointments').insert(payload).select().single();
+    const { error } = await supabase.from('appointments').insert(payload);
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '23505') return NextResponse.json({ error: 'Slot already booked' }, { status: 409 });
+      throw error;
+    }
 
-    return NextResponse.json({ appointment: data }, { status: 201 });
+    return NextResponse.json({ appointment: { status: 'pending' } }, { status: 201 });
   } catch (error) {
     console.error('Failed to create appointment', error);
-    return NextResponse.json({
-      error: 'Could not save appointment',
-      details: error instanceof Error ? error.message : String(error),
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Could not save appointment' }, { status: 500 });
   }
 }

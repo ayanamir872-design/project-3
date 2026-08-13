@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import BookingProvider from '@/components/BookingProvider';
+import SiteShell from '@/components/SiteShell';
 
 export const metadata: Metadata = {
   metadataBase: new URL('http://localhost:3000'),
@@ -24,17 +22,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <link rel="icon" href="/images/logo.jpeg" />
       </head>
       <body>
-        <BookingProvider>
-          <Header />
-          <main id="main-content">{children}</main>
-          <Footer />
-        </BookingProvider>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );

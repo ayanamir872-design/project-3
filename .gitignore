@@ -34,4 +34,5 @@ Thumbs.db
 coverage/
 build/
 *.log
+*.tsbuildinfo
 node_modules
