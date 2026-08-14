@@ -59,7 +59,7 @@ export default function AboutPage() {
 
               <div style={styles.accentBox}>
                 <p style={styles.accentText}>
-                  "When you feel confident in your skin, your natural glow shines through effortlessly."
+                  &quot;When you feel confident in your skin, your natural glow shines through effortlessly.&quot;
                 </p>
               </div>
             </div>

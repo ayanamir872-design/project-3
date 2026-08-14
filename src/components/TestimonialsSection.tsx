@@ -41,7 +41,7 @@ export default function TestimonialsSection() {
                 ))}
               </div>
               <Quote size={28} color="var(--color-gold-subtle)" style={{ marginBottom: '0.5rem' }} />
-              <p style={styles.quoteText}>"{rev.quote}"</p>
+              <p style={styles.quoteText}>&quot;{rev.quote}&quot;</p>
               <div style={styles.authorMeta}>
                 <span style={styles.authorName}>{rev.author}</span>
                 <span style={styles.serviceName}>{rev.service}</span>
