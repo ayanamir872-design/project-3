@@ -23,10 +23,10 @@ export default function AdminHeader() {
     <header className="admin-header">
       <div>
         <p className="admin-header-context">Aima Glow Studio</p>
-        <h1>{pathname.startsWith('/admin/appointments') ? 'Appointments' : pathname === '/admin' || pathname === '/admin/dashboard' ? 'Dashboard' : 'Admin workspace'}</h1>
+        <h1>{pathname.startsWith('/admin/appointments') ? 'Appointments' : pathname.startsWith('/admin/services') ? 'Services' : pathname === '/admin' || pathname === '/admin/dashboard' ? 'Dashboard' : 'Admin workspace'}</h1>
       </div>
       <div className="admin-header-actions">
-        <button className="btn btn-primary" onClick={() => window.location.href = '/admin/new'}>Quick action</button>
+        <button className="btn btn-primary" onClick={() => window.location.href = '/admin/services'}>Manage services</button>
         <button className="btn btn-secondary" onClick={signOut} disabled={loading}>{loading ? 'Signing out...' : 'Sign out'}</button>
       </div>
     </header>

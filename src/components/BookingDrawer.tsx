@@ -3,15 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, User, Phone, Sparkles, CheckCircle2, MessageSquare } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { formatServicePrice, type PublicService } from '@/lib/services';
 
 interface BookingDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  initialService: string;
+  initialService: PublicService | null;
+  services: PublicService[];
+  servicesLoading: boolean;
+  servicesError: string | null;
+  refreshServices: () => Promise<void>;
 }
 
-export default function BookingDrawer({ isOpen, onClose, initialService }: BookingDrawerProps) {
-  const [service, setService] = useState(initialService);
+export default function BookingDrawer({ isOpen, onClose, initialService, services, servicesLoading, servicesError, refreshServices }: BookingDrawerProps) {
+  const [serviceId, setServiceId] = useState(initialService?.id ?? '');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [date, setDate] = useState('');
@@ -22,10 +27,10 @@ export default function BookingDrawer({ isOpen, onClose, initialService }: Booki
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    if (initialService) {
-      setService(initialService);
-    }
+    setServiceId(initialService?.id ?? '');
   }, [initialService]);
+
+  const service = services.find((item) => item.id === serviceId) ?? initialService;
 
   useEffect(() => {
     if (isOpen) {
@@ -44,7 +49,10 @@ export default function BookingDrawer({ isOpen, onClose, initialService }: Booki
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone || !date) return;
+    if (!name || !phone || !date || !service) {
+      setErrorMessage('Choose a service, then add your contact details and preferred date.');
+      return;
+    }
 
     setIsSaving(true);
     setErrorMessage('');
@@ -58,7 +66,8 @@ export default function BookingDrawer({ isOpen, onClose, initialService }: Booki
         body: JSON.stringify({
           customer_name: name,
           phone_number: phone,
-          service_name: service,
+          service_id: service?.id,
+          service_name: service?.name,
           appointment_date: date,
           appointment_time: time,
           notes: note,
@@ -116,7 +125,7 @@ export default function BookingDrawer({ isOpen, onClose, initialService }: Booki
             </div>
             <h3 style={styles.successTitle}>Appointment Requested</h3>
             <p style={styles.successText}>
-              Thank you, <strong style={{ color: 'var(--color-burgundy)' }}>{name}</strong>. We have received your booking request for <strong>{service}</strong> on {date} at {time}.
+              Thank you, <strong style={{ color: 'var(--color-burgundy)' }}>{name}</strong>. We have received your booking request for <strong>{service?.name}</strong> on {date} at {time}.
             </p>
             <p style={styles.successSubtext}>
               Our concierge will contact you at <strong>{phone}</strong> shortly to confirm your reservation.
@@ -143,22 +152,25 @@ export default function BookingDrawer({ isOpen, onClose, initialService }: Booki
 
             {/* Service Selection */}
             <div style={styles.fieldGroup}>
-              <label style={styles.label}>Selected Treatment</label>
-              <select 
-                value={service} 
-                onChange={(e) => setService(e.target.value)} 
-                style={styles.select}
-              >
-                <option value="Hydrafacial">Hydrafacial (Deep Cleansing & Hydration)</option>
-                <option value="Nail Art">Nail Art (Bespoke Luxury Nail Artistry)</option>
-                <option value="Eyelashes Art">Eyelashes Art (Defined Natural Lash Extensions)</option>
-                <option value="Hairstyling">Hairstyling (Blowouts & Couture Styling)</option>
-                <option value="Make Up">Make Up (Editorial & Glam Makeup Artistry)</option>
-                <option value="Bridal Make-Up">Bridal Make-Up (Exclusive Luxury Bridal Package)</option>
-                <option value="Signature Glowing Facial Ritual">Signature Glowing Facial Ritual</option>
-                <option value="Luxe Manicure & Pedicure Spa">Luxe Manicure & Pedicure Spa</option>
-                <option value="Brow Sculpting & Lamination">Brow Sculpting & Lamination</option>
-              </select>
+              <label style={styles.label} htmlFor="booking-service">Selected treatment *</label>
+              {servicesLoading ? <div style={styles.serviceLoading}>Loading live services...</div> : servicesError ? (
+                <div style={styles.serviceError} role="alert">
+                  <span>{servicesError}</span>
+                  <button type="button" style={styles.retryBtn} onClick={refreshServices}>Try again</button>
+                </div>
+              ) : (
+                <select
+                  id="booking-service"
+                  required
+                  value={serviceId}
+                  onChange={(e) => setServiceId(e.target.value)}
+                  style={styles.select}
+                >
+                  <option value="">Choose a service</option>
+                  {services.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
+                </select>
+              )}
+              {service ? <div style={styles.serviceMeta}>{service.duration_minutes} min <span aria-hidden="true">·</span> {formatServicePrice(service)}</div> : null}
             </div>
 
             {/* Full Name */}
@@ -495,5 +507,38 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     cursor: 'pointer',
     marginTop: '1.5rem',
+  },
+  serviceLoading: {
+    padding: '0.875rem 1rem',
+    borderRadius: '8px',
+    backgroundColor: 'var(--color-rose-subtle)',
+    color: 'var(--color-espresso-muted)',
+    fontSize: '0.9rem',
+  },
+  serviceError: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.875rem 1rem',
+    borderRadius: '8px',
+    backgroundColor: '#fff1f2',
+    color: '#9f1239',
+    fontSize: '0.9rem',
+  },
+  retryBtn: {
+    border: 'none',
+    background: 'transparent',
+    color: 'var(--color-burgundy)',
+    fontWeight: 700,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  serviceMeta: {
+    color: 'var(--color-burgundy)',
+    fontSize: '0.8rem',
+    fontWeight: 700,
+    letterSpacing: '0.04em',
+    marginTop: '0.25rem',
   },
 };

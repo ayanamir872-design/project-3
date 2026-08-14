@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authorizeAdmin, isAuthorizedAdmin } from '@/lib/adminAuth';
+import { slugifyServiceName } from '@/lib/serviceValidation';
 
 export async function GET(request: NextRequest) {
   const auth = await authorizeAdmin(request);
@@ -11,14 +12,18 @@ export async function GET(request: NextRequest) {
   const pageSize = Math.min(100, Math.max(1, parseInt(q.get('pageSize') || '20')));
   const status = q.get('status');
   const service = q.get('service');
+  const serviceId = q.get('service_id');
+  const customer = q.get('customer');
   const phone = q.get('phone');
   const date = q.get('date');
 
   try {
-    let query = auth.supabase.from('appointments').select('*', { count: 'exact' }).order('created_at', { ascending: false });
+    let query = auth.supabase.from('appointments').select('*, service:services(id,name,slug,price,currency,duration_minutes)', { count: 'exact' }).order('created_at', { ascending: false });
 
     if (status) query = query.eq('status', status);
     if (service) query = query.ilike('service_name', `%${service}%`);
+    if (serviceId) query = query.eq('service_id', serviceId);
+    if (customer) query = query.ilike('customer_name', `%${customer}%`);
     if (phone) query = query.eq('phone_number', phone);
     if (date) query = query.eq('appointment_date', date);
 
@@ -43,10 +48,18 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { customer_name, phone_number, service_name, appointment_date, appointment_time, notes } = body;
+    const requestedServiceId = typeof body.service_id === 'string' && body.service_id.trim() ? body.service_id.trim() : null;
 
-    if (!customer_name || !phone_number || !service_name || !appointment_date || !appointment_time) {
+    if (!customer_name || !phone_number || (!service_name && !requestedServiceId) || !appointment_date || !appointment_time) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    let serviceQuery = supabase.from('services').select('id,name,slug,price,currency,duration_minutes,is_active');
+    const { data: service } = requestedServiceId
+      ? await serviceQuery.eq('id', requestedServiceId).maybeSingle()
+      : await serviceQuery.eq('slug', slugifyServiceName(String(service_name))).maybeSingle();
+    if (!service) return NextResponse.json({ error: 'Selected service was not found.' }, { status: 400 });
+    if (!service.is_active) return NextResponse.json({ error: 'Selected service is no longer available.' }, { status: 400 });
 
     const dateObj = new Date(appointment_date);
     if (isNaN(dateObj.getTime())) return NextResponse.json({ error: 'Invalid appointment_date' }, { status: 400 });
@@ -75,7 +88,10 @@ export async function POST(request: NextRequest) {
     const payload: any = {
       customer_name,
       phone_number,
-      service_name,
+      service_id: service.id,
+      service_name: service.name,
+      service_price_at_booking: service.price,
+      service_currency_at_booking: service.currency,
       appointment_date,
       appointment_time,
       notes: notes ?? '',

@@ -7,7 +7,7 @@ import { Phone, Instagram, ArrowUpRight, Sparkles, MapPin, Heart } from 'lucide-
 import { useBooking } from './BookingProvider';
 
 export default function Footer() {
-  const { openBooking } = useBooking();
+  const { openBooking, services } = useBooking();
 
   return (
     <footer style={styles.footer}>
@@ -42,9 +42,9 @@ export default function Footer() {
                 style={styles.logoImg}
               />
             </div>
-            <p style={styles.tagline}>"Beauty. Confidence. You."</p>
+            <p style={styles.tagline}>&quot;Beauty. Confidence. You.&quot;</p>
             <p style={styles.brandDesc}>
-              Bespoke beauty studio delivering radiant Hydrafacials, couture Nail Art, and refined Lash Artistry tailored to your unique elegance.
+              A considered beauty studio creating thoughtful, detail-led rituals tailored to your unique elegance.
             </p>
           </div>
 
@@ -76,26 +76,14 @@ export default function Footer() {
           <div style={styles.servicesCol}>
             <h4 style={styles.colTitle}>Signature Offerings</h4>
             <ul style={styles.navList}>
-              <li>
-                <span onClick={() => openBooking('Hydrafacial')} style={styles.serviceLink}>
-                  Hydrafacial Rejuvenation
-                </span>
-              </li>
-              <li>
-                <span onClick={() => openBooking('Nail Art')} style={styles.serviceLink}>
-                  Couture Nail Art
-                </span>
-              </li>
-              <li>
-                <span onClick={() => openBooking('Eyelashes Art')} style={styles.serviceLink}>
-                  Defined Eyelashes Art
-                </span>
-              </li>
-              <li>
-                <span onClick={() => openBooking('Signature Glowing Facial Ritual')} style={styles.serviceLink}>
-                  Glowing Facial Ritual
-                </span>
-              </li>
+              {services.slice(0, 4).map((service) => (
+                <li key={service.id}>
+                  <button type="button" onClick={() => openBooking(service)} style={styles.serviceLink}>
+                    {service.name}
+                  </button>
+                </li>
+              ))}
+              {services.length === 0 ? <li><Link href="/services" style={styles.navLink}>Browse the live menu</Link></li> : null}
             </ul>
           </div>
 
@@ -267,6 +255,10 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: 'var(--font-sans)',
   },
   serviceLink: {
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    fontFamily: 'var(--font-sans)',
     color: 'var(--color-rose-subtle)',
     fontSize: '0.9375rem',
     cursor: 'pointer',

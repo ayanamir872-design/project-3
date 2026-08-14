@@ -8,7 +8,7 @@ export default function AdminSidebar() {
   const links = [
     { href: '/admin', label: 'Dashboard', match: pathname === '/admin' || pathname === '/admin/dashboard' },
     { href: '/admin/appointments', label: 'Appointments', match: pathname.startsWith('/admin/appointments') },
-    { href: '/admin/services', label: 'Services' },
+    { href: '/admin/services', label: 'Services', match: pathname.startsWith('/admin/services') },
     { href: '/admin/media', label: 'Media' },
     { href: '/admin/customers', label: 'Customers' },
     { href: '/admin/staff', label: 'Staff' },
