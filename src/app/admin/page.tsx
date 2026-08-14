@@ -32,9 +32,9 @@ type DashboardData = {
 
 function Metric({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="border border-[#e7ddd2] bg-white p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#756b64]">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-[#651F32]">{value}</p>
+    <div className="admin-metric-card">
+      <p>{label}</p>
+      <strong>{value}</strong>
     </div>
   );
 }
@@ -71,34 +71,34 @@ export default function AdminIndex() {
   }, []);
 
   if (loading) {
-    return <section aria-busy="true"><h2 className="mb-6 text-2xl font-semibold text-[#651F32]">Dashboard</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((item) => <div key={item} className="h-24 animate-pulse bg-white/70" />)}</div></section>;
+    return <section className="admin-dashboard" aria-busy="true"><div className="admin-dashboard-heading"><div><span className="admin-eyebrow">Studio operations</span><h2>Dashboard</h2></div></div><div className="admin-metrics-grid">{[1, 2, 3, 4].map((item) => <div key={item} className="admin-metric-skeleton" />)}</div></section>;
   }
 
   if (error || !data) {
-    return <section><h2 className="mb-3 text-2xl font-semibold text-[#651F32]">Dashboard</h2><div className="border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error ?? 'Dashboard data is unavailable.'}</div></section>;
+    return <section className="admin-dashboard"><div className="admin-dashboard-heading"><div><span className="admin-eyebrow">Studio operations</span><h2>Dashboard</h2></div></div><div className="admin-alert" role="alert"><div><strong>We couldn&apos;t load the dashboard.</strong><span>{error ?? 'Dashboard data is unavailable.'}</span></div></div></section>;
   }
 
   const { metrics } = data;
   return (
-    <section>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div><p className="text-sm text-[#756b64]">Operations overview</p><h2 className="text-2xl font-semibold text-[#651F32]">Dashboard</h2></div>
-        <Link href="/admin/appointments" className="bg-[#651F32] px-4 py-2 text-sm font-medium text-white">View appointments</Link>
+    <section className="admin-dashboard">
+      <div className="admin-dashboard-heading">
+        <div><span className="admin-eyebrow">Studio operations</span><h2>Dashboard</h2><p>Keep the daily schedule visible and current.</p></div>
+        <Link href="/admin/appointments" className="btn btn-primary">View appointments</Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="admin-metrics-grid">
         <Metric label="Total appointments" value={metrics.totalAppointments} />
-        <Metric label="Today" value={metrics.todayAppointments} />
         <Metric label="Pending" value={metrics.statusCounts.pending ?? 0} />
         <Metric label="Confirmed" value={metrics.statusCounts.confirmed ?? 0} />
+        <Metric label="Cancelled" value={metrics.statusCounts.cancelled ?? 0} />
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <div className="border border-[#e7ddd2] bg-white p-5 shadow-sm"><h3 className="mb-4 text-lg font-semibold text-[#651F32]">Upcoming appointments</h3>{data.upcomingAppointments.length === 0 ? <p className="text-sm text-[#756b64]">No upcoming appointments yet.</p> : <div className="space-y-3">{data.upcomingAppointments.map((appointment) => <div key={appointment.id} className="flex items-center justify-between gap-3 border-b border-[#eee5dc] pb-3 text-sm"><div><p className="font-medium">{appointment.customer_name}</p><p className="text-[#756b64]">{appointment.service_name}</p></div><p className="text-right text-[#756b64]">{appointment.appointment_date}<br />{appointment.appointment_time}</p></div>)}</div>}</div>
-        <div className="border border-[#e7ddd2] bg-white p-5 shadow-sm"><h3 className="mb-4 text-lg font-semibold text-[#651F32]">Recent bookings</h3>{data.recentAppointments.length === 0 ? <p className="text-sm text-[#756b64]">No bookings have been recorded.</p> : <div className="space-y-3">{data.recentAppointments.map((appointment) => <div key={appointment.id} className="flex items-center justify-between gap-3 border-b border-[#eee5dc] pb-3 text-sm"><div><p className="font-medium">{appointment.customer_name}</p><p className="text-[#756b64]">{appointment.service_name}</p></div><span className="text-xs uppercase tracking-wide text-[#756b64]">{appointment.status}</span></div>)}</div>}</div>
+      <div className="admin-dashboard-panels">
+        <div className="admin-dashboard-panel"><div className="admin-panel-heading"><div><span className="admin-panel-kicker">Schedule</span><h3>Upcoming appointments</h3></div><span>{data.upcomingAppointments.length} shown</span></div>{data.upcomingAppointments.length === 0 ? <p className="admin-dashboard-empty">No upcoming appointments yet.</p> : <div className="admin-dashboard-list">{data.upcomingAppointments.map((appointment) => <div key={appointment.id} className="admin-dashboard-row"><div><strong>{appointment.customer_name}</strong><span>{appointment.service_name}</span></div><time>{appointment.appointment_date}<br />{appointment.appointment_time}</time></div>)}</div>}</div>
+        <div className="admin-dashboard-panel"><div className="admin-panel-heading"><div><span className="admin-panel-kicker">Activity</span><h3>Recent bookings</h3></div><span>{data.recentAppointments.length} shown</span></div>{data.recentAppointments.length === 0 ? <p className="admin-dashboard-empty">No bookings have been recorded.</p> : <div className="admin-dashboard-list">{data.recentAppointments.map((appointment) => <div key={appointment.id} className="admin-dashboard-row"><div><strong>{appointment.customer_name}</strong><span>{appointment.service_name}</span></div><span className={`admin-badge admin-badge--${appointment.status}`}>{appointment.status}</span></div>)}</div>}</div>
       </div>
 
-      <div className="mt-6 border border-[#e7ddd2] bg-[#fffaf5] p-4 text-sm text-[#756b64]">Customer totals, service totals, revenue, charts, and other CMS metrics will appear after their real database models are introduced. No placeholder business numbers are shown.</div>
+      <div className="admin-dashboard-note">Customer totals, service totals, revenue, charts, and other CMS metrics will appear after their real database models are introduced. No placeholder business numbers are shown.</div>
     </section>
   );
 }

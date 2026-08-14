@@ -1,24 +1,39 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function AdminSidebar() {
+  const pathname = usePathname();
+  const links = [
+    { href: '/admin', label: 'Dashboard', match: pathname === '/admin' || pathname === '/admin/dashboard' },
+    { href: '/admin/appointments', label: 'Appointments', match: pathname.startsWith('/admin/appointments') },
+    { href: '/admin/services', label: 'Services' },
+    { href: '/admin/media', label: 'Media' },
+    { href: '/admin/customers', label: 'Customers' },
+    { href: '/admin/staff', label: 'Staff' },
+    { href: '/admin/reviews', label: 'Reviews' },
+    { href: '/admin/settings', label: 'Settings' },
+  ];
+
   return (
-    <aside className="w-72 bg-white border-r border-gray-200 p-6">
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-[#651F32]">Aima Glow Admin</h2>
-        <p className="text-sm text-gray-500">Control panel</p>
+    <aside className="admin-sidebar">
+      <div className="admin-sidebar-brand">
+        <span className="admin-brand-mark">AG</span>
+        <div>
+          <h2>Aima Glow Studio</h2>
+          <p>Admin workspace</p>
+        </div>
       </div>
-      <nav className="space-y-2">
-        <Link href="/admin" className="block px-3 py-2 rounded hover:bg-[#F2EDE8]">Dashboard</Link>
-        <Link href="/admin/appointments" className="block px-3 py-2 rounded hover:bg-[#F2EDE8]">Appointments</Link>
-        <Link href="/admin/services" className="block px-3 py-2 rounded hover:bg-[#F2EDE8]">Services</Link>
-        <Link href="/admin/media" className="block px-3 py-2 rounded hover:bg-[#F2EDE8]">Media</Link>
-        <Link href="/admin/customers" className="block px-3 py-2 rounded hover:bg-[#F2EDE8]">Customers</Link>
-        <Link href="/admin/staff" className="block px-3 py-2 rounded hover:bg-[#F2EDE8]">Staff</Link>
-        <Link href="/admin/reviews" className="block px-3 py-2 rounded hover:bg-[#F2EDE8]">Reviews</Link>
-        <Link href="/admin/settings" className="block px-3 py-2 rounded hover:bg-[#F2EDE8]">Settings</Link>
+      <nav className="admin-nav" aria-label="Admin navigation">
+        <p className="admin-nav-label">Workspace</p>
+        {links.map((link) => (
+          <Link href={link.href} key={link.href} className={`admin-nav-link${link.match ? ' is-active' : ''}`} aria-current={link.match ? 'page' : undefined}>
+            <span>{link.label}</span>
+          </Link>
+        ))}
       </nav>
+      <div className="admin-sidebar-note"><span className="admin-status-indicator" /> Supabase Auth protected</div>
     </aside>
   );
 }

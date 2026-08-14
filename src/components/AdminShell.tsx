@@ -11,18 +11,18 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   if (pathname === '/admin/login') {
     return (
-      <div className="min-h-screen bg-[#F7F1E8] px-4 py-16 text-[#1f1f1f]">
+      <div className="admin-auth-shell">
         {children}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex bg-[#F7F1E8] text-[#1f1f1f]">
+    <div className="admin-app-shell">
       <AdminSidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="admin-content-shell">
         <AdminHeader />
-        <main className="p-6">
+        <main className="admin-main-content">
           <AdminGuard>{children}</AdminGuard>
         </main>
       </div>

@@ -7,6 +7,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -40,26 +41,40 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md border border-[#e7ddd2] bg-white p-8 shadow-sm">
-      <p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-[#756b64]">Aima Glow Studio</p>
-      <h2 className="mb-2 text-2xl font-semibold text-[#651F32]">Admin sign in</h2>
-      <p className="mb-6 text-sm text-[#756b64]">Use your Supabase Auth admin email and password.</p>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="admin-username">Admin email</label>
-          <input id="admin-username" type="text" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required className="w-full border border-[#d8cbc0] px-3 py-2" />
+    <main className="admin-login-page">
+      <div className="admin-login-brand" aria-label="Aima Glow Studio">
+        <span className="admin-brand-mark">AG</span>
+        <span>Aima Glow Studio</span>
+      </div>
+      <section className="admin-login-card" aria-labelledby="admin-login-title">
+        <div className="admin-login-heading">
+          <span className="admin-login-kicker">Studio workspace</span>
+          <h1 id="admin-login-title">Welcome back</h1>
+          <p>Sign in to manage appointments and daily studio operations.</p>
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="admin-password">Password</label>
-          <input id="admin-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required className="w-full border border-[#d8cbc0] px-3 py-2" />
-        </div>
-        <button type="submit" className="w-full bg-[#651F32] px-4 py-3 font-medium text-white" disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign in'}
-        </button>
-      </form>
 
-      {message && <p role="alert" className="mt-4 border border-red-200 bg-red-50 p-3 text-sm text-red-800">{message}</p>}
-    </div>
+        <form onSubmit={handleSubmit} className="admin-login-form">
+          <div className="admin-login-field">
+            <label htmlFor="admin-username">Admin email</label>
+            <input id="admin-username" type="text" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required />
+          </div>
+          <div className="admin-login-field">
+            <label htmlFor="admin-password">Password</label>
+            <div className="admin-password-field">
+              <input id="admin-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+              <button type="button" className="admin-password-toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+          </div>
+          <button type="submit" className="admin-login-submit" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
+
+        {message && <p role="alert" className="admin-login-error">{message}</p>}
+      </section>
+      <p className="admin-login-footer">Secure access for studio staff</p>
+    </main>
   );
 }

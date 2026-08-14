@@ -1,7 +1,9 @@
 "use client";
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function AdminHeader() {
+  const pathname = usePathname();
   const [loading, setLoading] = useState(false);
 
   const signOut = async () => {
@@ -18,11 +20,14 @@ export default function AdminHeader() {
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
-      <h1 className="text-lg font-medium">Admin</h1>
-      <div className="flex items-center gap-4">
-        <button className="px-3 py-2 bg-[#651F32] text-white rounded" onClick={() => window.location.href = '/admin/new'}>Quick Action</button>
-        <button className="px-3 py-2 border rounded" onClick={signOut} disabled={loading}>{loading ? 'Signing out...' : 'Sign out'}</button>
+    <header className="admin-header">
+      <div>
+        <p className="admin-header-context">Aima Glow Studio</p>
+        <h1>{pathname.startsWith('/admin/appointments') ? 'Appointments' : pathname === '/admin' || pathname === '/admin/dashboard' ? 'Dashboard' : 'Admin workspace'}</h1>
+      </div>
+      <div className="admin-header-actions">
+        <button className="btn btn-primary" onClick={() => window.location.href = '/admin/new'}>Quick action</button>
+        <button className="btn btn-secondary" onClick={signOut} disabled={loading}>{loading ? 'Signing out...' : 'Sign out'}</button>
       </div>
     </header>
   );
