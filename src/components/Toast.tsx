@@ -17,30 +17,17 @@ export function Toast({ toast, onClose }: { toast: ToastMessage; onClose: () => 
     return () => clearTimeout(timer);
   }, [toast.duration, onClose]);
 
-  const bgColor = {
-    success: 'bg-emerald-50 border-emerald-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200',
-  }[toast.type];
-
-  const textColor = {
-    success: 'text-emerald-700',
-    error: 'text-red-700',
-    info: 'text-blue-700',
-    warning: 'text-yellow-700',
-  }[toast.type];
-
   return (
-    <div className={`rounded-lg border px-4 py-3 text-sm font-medium ${bgColor} ${textColor}`}>
-      {toast.message}
+    <div className={`admin-toast admin-toast--${toast.type}`} role="status" aria-live="polite">
+      <span>{toast.message}</span>
+      <button className="admin-toast-close" onClick={onClose} aria-label="Dismiss notification">&times;</button>
     </div>
   );
 }
 
 export function ToastContainer({ toasts, onRemove }: { toasts: ToastMessage[]; onRemove: (id: string) => void }) {
   return (
-    <div className="fixed bottom-6 right-6 z-50 space-y-2 max-w-sm">
+    <div className="admin-toast-container">
       {toasts.map((toast) => (
         <Toast key={toast.id} toast={toast} onClose={() => onRemove(toast.id)} />
       ))}
